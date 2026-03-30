@@ -21,6 +21,31 @@ $defaultData = [
     ]
 ];
 
+function migrateOldFormat($old) {
+    global $defaultData;
+    $config = $defaultData['config'];
+    if (isset($old['config'])) {
+        $config['vehicule']         = $old['config']['vehicle']        ?? $config['vehicule'];
+        $config['dateAnniversaire'] = $old['config']['startDate']      ?? $config['dateAnniversaire'];
+        $config['kmInitial']        = (float)($old['config']['startKm']        ?? $config['kmInitial']);
+        $config['dureeMois']        = (int)($old['config']['durationMonths']   ?? $config['dureeMois']);
+        $config['forfaitTotal']     = (float)($old['config']['totalKm']        ?? $config['forfaitTotal']);
+    }
+    $releves = [];
+    if (isset($old['entries']) && is_array($old['entries'])) {
+        $startDate = new DateTime($config['dateAnniversaire']);
+        foreach ($old['entries'] as $entry) {
+            if (empty($entry['date']) || !isset($entry['km'])) continue;
+            $entryDate = new DateTime($entry['date']);
+            $diff      = $startDate->diff($entryDate);
+            $months    = $diff->y * 12 + $diff->m;
+            $key       = "chrono-{$months}";
+            $releves[$key] = ['date' => $entry['date'], 'km' => (float)$entry['km']];
+        }
+    }
+    return ['config' => $config, 'releves' => $releves];
+}
+
 function loadData() {
     global $defaultData;
     if (!file_exists(DATA_FILE)) {
@@ -28,7 +53,13 @@ function loadData() {
         return $defaultData;
     }
     $data = json_decode(file_get_contents(DATA_FILE), true);
-    return $data ?? $defaultData;
+    if ($data === null) return $defaultData;
+    // Migrate old format (entries[] + startDate/startKm keys)
+    if (isset($data['entries']) || isset($data['config']['startDate'])) {
+        $data = migrateOldFormat($data);
+        saveData($data);
+    }
+    return $data;
 }
 
 function saveData($data) {

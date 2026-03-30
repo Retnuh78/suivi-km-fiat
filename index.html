@@ -569,13 +569,30 @@
     const key    = `chrono-${chrono}`;
     if (!releves[key]) releves[key] = {};
     if (field === 'km') {
-      releves[key].km = input.value !== '' ? parseFloat(input.value) : undefined;
-      if (releves[key].km === undefined) delete releves[key].km;
+      const v = input.value !== '' ? parseFloat(input.value) : undefined;
+      if (v === undefined) delete releves[key].km;
+      else releves[key].km = v;
+      updateDeltaCell(chrono);
     } else {
       releves[key].date = input.value;
     }
     renderStats();
     scheduleSave();
+  }
+
+  function updateDeltaCell(chrono) {
+    const monthly = config.forfaitTotal / config.dureeMois;
+    const kmEch   = config.kmInitial + monthly * parseInt(chrono);
+    const rel     = releves[`chrono-${chrono}`] || {};
+    const delta   = rel.km !== undefined ? rel.km - kmEch : null;
+    const inputs  = document.querySelectorAll(`[data-chrono="${chrono}"]`);
+    if (!inputs.length) return;
+    const row  = inputs[0].closest('tr');
+    if (!row) return;
+    const cell = row.querySelector('td:last-child');
+    if (!cell) return;
+    cell.className   = deltaClass(delta);
+    cell.textContent = delta !== null ? (delta >= 0 ? '+' : '') + fmt(Math.round(delta)) : '—';
   }
 
   // ─── Auto-save ────────────────────────────────────────────────────
