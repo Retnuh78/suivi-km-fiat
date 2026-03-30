@@ -5,243 +5,193 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Suivi kilométrique Fiat 500e - Contrat LOA">
   <title>Suivi Kilométrique Fiat 500e</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Manrope', 'sans-serif'],
+            display: ['Space Grotesk', 'sans-serif'],
+          },
+          colors: {
+            brand: { 300: '#5eead4', 400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488' },
+            dark: { 800: '#111827', 850: '#0d131f', 900: '#030712' },
+          }
+        }
+      }
+    }
+  </script>
+  
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --dark:   #1F3A3D;
-      --darker: #14282A;
-      --teal:   #E8F2F1;
-      --red:    #dc2626;
-      --redbg:  #fef2f2;
-      --orange: #ea580c;
-      --orangebg: #fff7ed;
-      --green:  #16a34a;
-      --greenbg:#f0fdf4;
-      --purple: #9333ea;
-      --purplebg:#faf5ff;
-      --gray:   #6b7280;
-      --border: #e5e7eb;
-      --bg:     #f3f4f6;
-      --card:   #ffffff;
-      --text:   #111827;
-    }
-
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      padding: 16px;
+      background-color: #030712;
+      color: #e5e7eb;
+      background-image: 
+        radial-gradient(circle at 15% 50%, rgba(20, 184, 166, 0.08), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(45, 212, 191, 0.08), transparent 25%);
+      background-attachment: fixed;
+      font-family: 'Manrope', sans-serif;
     }
-
-    .container { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
-
-    /* ── Header ── */
-    .header {
-      background: linear-gradient(to right, var(--dark), var(--darker));
-      border-radius: 12px;
-      padding: 24px;
-      color: white;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
+    
+    .glass-panel {
+      background: rgba(17, 24, 39, 0.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+      border-radius: 16px;
     }
-    .header h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 4px; }
-    .header .subtitle { opacity: 0.75; font-size: 0.95rem; }
-    .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-
-    .save-status { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; }
-    .save-status.saving  { color: #fcd34d; }
-    .save-status.saved   { color: #6ee7b7; }
-    .save-status.error   { color: #fca5a5; }
-    .save-status svg { flex-shrink: 0; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .spin { animation: spin 1s linear infinite; display: inline-block; width: 14px; height: 14px;
-            border: 2px solid #fcd34d; border-top-color: transparent; border-radius: 50%; }
-
+    
+    .neon-text { text-shadow: 0 0 10px rgba(45, 212, 191, 0.5); font-family: 'Space Grotesk', sans-serif; }
+    
+    /* Boutons */
     .btn {
       padding: 8px 16px; border-radius: 8px; font-size: 0.88rem;
       font-weight: 600; cursor: pointer; border: none;
-      display: inline-flex; align-items: center; gap: 6px; transition: opacity 0.15s;
+      display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;
     }
-    .btn:hover { opacity: 0.85; }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-light   { background: rgba(255,255,255,0.2); color: white; }
-    .btn-white   { background: white; color: var(--dark); }
-    .btn-dark    { background: var(--dark); color: white; }
-    .btn-outline { background: transparent; color: #374151; border: 1px solid var(--border); }
+    .btn-light   { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.05); }
+    .btn-light:hover { background: rgba(255,255,255,0.15); }
+    .btn-white   { background: theme('colors.brand.400'); color: #030712; }
+    .btn-white:hover { background: theme('colors.brand.300'); box-shadow: 0 0 15px rgba(45,212,191,0.4); }
+    .btn-dark    { background: theme('colors.brand.500'); color: #030712; }
+    .btn-outline { background: transparent; color: #9ca3af; border: 1px solid #4b5563; }
+    .btn-outline:hover { color: white; border-color: #6b7280; }
 
-    /* ── Cards ── */
-    .card {
-      background: var(--card);
-      border-radius: 12px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-      padding: 24px;
-    }
-    .card h2 { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 16px; }
+    /* Dynamiques JS existantes conservées mais restylées */
+    .save-status { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; }
+    .save-status.saving  { color: #fbbf24; }
+    .save-status.saved   { color: #2dd4bf; }
+    .save-status.error   { color: #f87171; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { animation: spin 1s linear infinite; display: inline-block; width: 14px; height: 14px;
+            border: 2px solid #fbbf24; border-top-color: transparent; border-radius: 50%; }
 
-    /* ── Paramètres summary ── */
-    .params-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 16px;
-    }
-    .param-item .label { font-size: 0.75rem; color: var(--gray); margin-bottom: 2px; }
-    .param-item .value { font-weight: 700; font-size: 0.95rem; }
-    .param-item .value.accent { color: var(--dark); }
+    .box-teal   { background: rgba(20, 184, 166, 0.1); border: 1px solid rgba(20, 184, 166, 0.2); }
+    .box-red    { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); }
+    .box-green  { background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); }
+    .box-neutral{ background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); }
+    .box-purple { background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.2); }
 
-    /* ── Stats ── */
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px; }
+    .col-dark   { color: #5eead4; text-shadow: 0 0 8px rgba(94,234,212,0.3); } 
+    .col-red    { color: #f87171; }
+    .col-green  { color: #4ade80; }
+    .col-gray   { color: #9ca3af; }
+    .col-purple { color: #c084fc; }
 
-    .stat-box { padding: 16px; border-radius: 10px; }
-    .stat-box .stat-label { font-size: 0.78rem; color: var(--gray); margin-bottom: 6px; }
-    .stat-box .stat-value { font-size: 1.6rem; font-weight: 700; line-height: 1.1; }
-    .stat-box .stat-sub   { font-size: 0.73rem; color: var(--gray); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
-
-    .box-teal   { background: var(--teal); }
-    .box-red    { background: var(--redbg); }
-    .box-green  { background: var(--greenbg); }
-    .box-neutral{ background: #f9fafb; }
-    .box-purple { background: var(--purplebg); }
-
-    .col-dark   { color: var(--dark); }
-    .col-red    { color: var(--red); }
-    .col-green  { color: var(--green); }
-    .col-gray   { color: var(--gray); }
-    .col-purple { color: var(--purple); }
-
-    .moyennes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .moy-item .moy-label { font-size: 0.72rem; color: var(--gray); margin-bottom: 4px; }
-    .moy-item .moy-value { font-size: 1.3rem; font-weight: 700; color: var(--purple); }
-    .moy-item .moy-ref   { font-size: 0.7rem; color: var(--gray); margin-top: 2px; }
-
-    /* Projection box */
     .proj-box {
-      padding: 16px; border-radius: 10px; border: 2px solid;
+      padding: 16px; border-radius: 12px; border: 1px solid;
       display: flex; justify-content: space-between; align-items: flex-start;
       flex-wrap: wrap; gap: 12px;
+      background: rgba(17, 24, 39, 0.6); backdrop-filter: blur(4px);
     }
-    .proj-box.over   { background: var(--redbg);   border-color: #fca5a5; }
-    .proj-box.slight { background: var(--orangebg); border-color: #fdba74; }
-    .proj-box.ok     { background: var(--greenbg);  border-color: #86efac; }
+    .proj-box.over   { border-color: rgba(239, 68, 68, 0.4); box-shadow: inset 0 0 15px rgba(239,68,68,0.1); }
+    .proj-box.slight { border-color: rgba(245, 158, 11, 0.4); box-shadow: inset 0 0 15px rgba(245,158,11,0.1); }
+    .proj-box.ok     { border-color: rgba(34, 197, 94, 0.4); box-shadow: inset 0 0 15px rgba(34,197,94,0.1); }
 
-    .proj-left .proj-title { font-size: 0.82rem; font-weight: 600; color: #374151; display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
-    .proj-left .proj-km    { font-size: 1.6rem; font-weight: 700; }
-    .proj-left .proj-msg   { font-weight: 600; font-size: 0.85rem; margin-top: 4px; }
-    .proj-right { text-align: right; }
-    .proj-right .pct-label { font-size: 0.78rem; color: var(--gray); }
-    .proj-right .pct-value { font-size: 2rem; font-weight: 700; }
-    .proj-right .pct-sub   { font-size: 0.7rem; color: var(--gray); }
+    .progress-wrap { margin-top: 12px; background: rgba(255,255,255,0.05); border-radius: 6px; height: 8px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 6px; transition: width 0.4s; box-shadow: 0 0 10px currentColor; }
 
-    .progress-wrap { margin-top: 12px; background: #e5e7eb; border-radius: 6px; height: 10px; overflow: hidden; }
-    .progress-fill { height: 100%; border-radius: 6px; transition: width 0.4s; }
-
-    /* ── Tables ── */
-    .year-tables { display: flex; flex-direction: column; gap: 16px; }
-    .year-block { background: var(--card); border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); overflow: hidden; }
-    .year-header { background: var(--dark); color: white; padding: 10px 16px; font-size: 1rem; font-weight: 700; }
-    .table-wrap  { overflow-x: auto; }
-
-    table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
-    thead tr:first-child th { background: #f3f4f6; padding: 8px 8px 4px; font-weight: 600; color: #374151; }
-    thead tr:last-child  th { background: #f9fafb; padding: 4px 8px 8px; font-size: 0.75rem; color: var(--gray); font-weight: 500; }
+    /* Tables CSS Custom pour garder la structure JS */
+    .year-header { font-family: 'Space Grotesk', sans-serif; background: rgba(0,0,0,0.4); color: white; padding: 12px 16px; font-size: 1.1rem; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    thead tr:first-child th { background: rgba(0,0,0,0.2); padding: 10px; font-weight: 600; color: #e5e7eb; }
+    thead tr:last-child th { background: rgba(0,0,0,0.1); padding: 6px 10px 10px; font-size: 0.75rem; color: #9ca3af; font-weight: 500; border-bottom: 1px solid rgba(255,255,255,0.05); }
     th { text-align: left; white-space: nowrap; }
-    th.bg-yellow { background: #fefce8 !important; }
-    td { padding: 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    th.bg-yellow { background: rgba(245, 158, 11, 0.1) !important; color: #fcd34d; }
+    td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.03); vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
-    tr:nth-child(even) td { background: #f9fafb; }
-    tr:nth-child(even) td.bg-yellow { background: #fefce8 !important; }
-    td.bg-yellow { background: #fffbeb; }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.01); }
+    tr:hover td { background: rgba(255,255,255,0.04); }
+    td.bg-yellow, tr:nth-child(even) td.bg-yellow { background: rgba(245, 158, 11, 0.05) !important; }
 
     .mono { font-family: ui-monospace, monospace; }
-
-    input[type="date"], input[type="number"] {
-      width: 100%; padding: 5px 7px; border: 1px solid var(--border);
-      border-radius: 6px; font-size: 0.8rem; background: white;
+    input[type="date"], input[type="number"], input[type="text"] {
+      width: 100%; padding: 6px 10px; border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px; font-size: 0.85rem; background: rgba(0,0,0,0.3); color: white;
+      transition: all 0.2s;
     }
-    input:focus { outline: none; border-color: var(--dark); }
+    input:focus { outline: none; border-color: #2dd4bf; box-shadow: 0 0 0 2px rgba(45,212,191,0.2); }
+    ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.6; cursor: pointer; }
 
-    .delta-over    { color: var(--red);   font-weight: 700; }
-    .delta-under   { color: var(--green); font-weight: 700; }
-    .delta-neutral { color: var(--gray); }
-    .delta-empty   { color: #d1d5db; }
+    .delta-over    { color: #f87171; font-weight: 700; }
+    .delta-under   { color: #4ade80; font-weight: 700; }
+    .delta-neutral { color: #9ca3af; }
+    .delta-empty   { color: #4b5563; }
 
-    /* ── Legend ── */
-    .legend-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; font-size: 0.83rem; color: #374151; }
-    .legend-grid span { font-weight: 600; }
+    /* Légende */
+    .legend-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; font-size: 0.83rem; color: #9ca3af; }
+    .legend-grid span { font-weight: 600; color: #e5e7eb; }
 
-    /* ── Modal ── */
+    /* Modale */
     .modal-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.5); z-index: 100;
-      align-items: center; justify-content: center; padding: 16px;
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 100; align-items: center; justify-content: center; padding: 16px;
     }
-    .modal-overlay.open { display: flex; }
+    .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease-out; }
     .modal {
-      background: white; border-radius: 12px; width: 100%; max-width: 540px;
-      max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      background: #111827; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
     }
-    .modal-header {
-      background: var(--dark); color: white; padding: 16px 20px;
-      border-radius: 12px 12px 0 0;
-      display: flex; justify-content: space-between; align-items: center;
-      position: sticky; top: 0; z-index: 1;
-    }
-    .modal-header h2 { font-size: 1.1rem; font-weight: 700; }
+    .modal-header { background: rgba(0,0,0,0.3); color: white; padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1; backdrop-filter: blur(10px); }
+    .modal-header h2 { font-size: 1.1rem; font-weight: 700; font-family: 'Space Grotesk'; }
     .modal-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
-    .modal-footer { background: #f9fafb; padding: 16px 20px; border-radius: 0 0 12px 12px; display: flex; justify-content: flex-end; gap: 10px; }
+    .modal-footer { background: rgba(0,0,0,0.2); padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: flex-end; gap: 10px; }
+    .form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: #e5e7eb; margin-bottom: 6px; }
+    .calc-box { background: rgba(45,212,191,0.1); border: 1px solid rgba(45,212,191,0.2); padding: 14px 16px; border-radius: 8px; }
+    .calc-box .calc-label { font-size: 0.75rem; color: #9ca3af; }
+    .calc-box .calc-value { font-size: 1.5rem; font-weight: 700; color: #5eead4; }
 
-    .form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: #374151; margin-bottom: 6px; }
-    .form-group input[type="text"],
-    .form-group input[type="date"],
-    .form-group input[type="number"] {
-      width: 100%; padding: 9px 12px; border: 1px solid var(--border);
-      border-radius: 8px; font-size: 0.92rem;
-    }
-    .calc-box { background: var(--teal); padding: 14px 16px; border-radius: 8px; }
-    .calc-box .calc-label { font-size: 0.75rem; color: var(--gray); }
-    .calc-box .calc-value { font-size: 1.5rem; font-weight: 700; color: var(--dark); }
+    .btn-close { background: rgba(255,255,255,0.1); border: none; color: white; cursor: pointer; padding: 6px; border-radius: 6px; display: flex; align-items: center; }
+    .btn-close:hover { background: rgba(255,255,255,0.2); }
 
-    .btn-close { background: rgba(255,255,255,0.15); border: none; color: white; cursor: pointer;
-                 padding: 4px; border-radius: 4px; display: flex; align-items: center; }
-    .btn-close:hover { background: rgba(255,255,255,0.25); }
+    /* Table mobile : scroll horizontal, toutes colonnes visibles */
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { min-width: 560px; }
+
+    /* Largeurs fixes des colonnes */
+    table th:nth-child(1), table td:nth-child(1) { width: 60px; }   /* Chrono */
+    table th:nth-child(2), table td:nth-child(2) { width: 95px; }   /* Date éch */
+    table th:nth-child(3), table td:nth-child(3) { width: 90px; }   /* km prévu */
+    table th:nth-child(4), table td:nth-child(4) { width: 130px; }  /* Date relevé */
+    table th:nth-child(5), table td:nth-child(5) { width: 110px; }  /* km relevé */
+    table th:nth-child(6), table td:nth-child(6) { width: 75px; }   /* Delta */
+
+    input[type="date"] { min-width: 0; }
+    input[type="number"] { min-width: 0; }
 
     @media (max-width: 600px) {
-      .header { padding: 16px; }
-      .header h1 { font-size: 1.3rem; }
-      .card { padding: 16px; }
-
-      /* Table mobile : cacher date échéancier et date relevé, garder chrono / km théo / km relevé / delta */
-      .col-hide-mobile { display: none; }
-
-      table { font-size: 0.9rem; }
-      td, th { padding: 10px 6px; }
-
-      /* Input km relevé : grand et facile à taper */
-      td input[type="number"] {
-        font-size: 1rem;
-        padding: 8px 6px;
-        min-width: 80px;
-      }
-
-      /* Colonne km théorique : plus compacte */
-      .col-kmEch { font-size: 0.8rem; color: var(--gray); }
+      td, th { padding: 10px 6px; font-size: 0.88rem; }
+      td input[type="number"], td input[type="date"] { font-size: 0.95rem; padding: 8px 6px; }
     }
+    
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
   </style>
 </head>
 <body>
 <div class="container">
 
   <!-- HEADER -->
-  <div class="header">
+  <div class="glass-panel p-6 flex justify-between items-center flex-wrap gap-4">
     <div>
-      <h1>Contrôle km / Contrat LOA</h1>
-      <div class="subtitle" id="header-vehicule">Fiat 500e (AM 2022)</div>
+      <h1 class="neon-text text-2xl md:text-3xl font-bold mb-1">Contrôle km / Contrat LOA</h1>
+      <div class="text-brand-300 opacity-80 text-sm flex items-center gap-2">
+        <span class="material-symbols-outlined text-[18px]">directions_car</span>
+        <span id="header-vehicule">Fiat 500e (AM 2022)</span>
+      </div>
     </div>
-    <div class="header-actions">
+    <div class="flex flex-wrap items-center gap-3">
       <div class="save-status" id="save-status"></div>
       <button class="btn btn-light" id="btn-backup" onclick="downloadBackup()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -255,43 +205,43 @@
   </div>
 
   <!-- PARAMÈTRES SUMMARY -->
-  <div class="card">
-    <h2>Paramètres du contrat</h2>
-    <div class="params-grid">
-      <div class="param-item"><div class="label">Date anniversaire</div><div class="value" id="p-date">—</div></div>
-      <div class="param-item"><div class="label">Km initial</div><div class="value" id="p-kmInitial">—</div></div>
-      <div class="param-item"><div class="label">Durée</div><div class="value" id="p-duree">—</div></div>
-      <div class="param-item"><div class="label">Forfait total</div><div class="value" id="p-forfait">—</div></div>
-      <div class="param-item"><div class="label">Forfait mensuel</div><div class="value accent" id="p-mensuel">—</div></div>
+  <div class="glass-panel p-6">
+    <h2 class="text-xl font-bold text-gray-200 mb-4 font-display flex items-center gap-2"><span class="material-symbols-outlined">settings</span> Paramètres du contrat</h2>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div class="param-item"><div class="text-xs text-gray-400 mb-1">Date anniversaire</div><div class="font-bold text-gray-200" id="p-date">—</div></div>
+      <div class="param-item"><div class="text-xs text-gray-400 mb-1">Km initial</div><div class="font-bold text-gray-200" id="p-kmInitial">—</div></div>
+      <div class="param-item"><div class="text-xs text-gray-400 mb-1">Durée</div><div class="font-bold text-gray-200" id="p-duree">—</div></div>
+      <div class="param-item"><div class="text-xs text-gray-400 mb-1">Forfait total</div><div class="font-bold text-gray-200" id="p-forfait">—</div></div>
+      <div class="param-item"><div class="text-xs text-brand-400 mb-1">Forfait mensuel</div><div class="font-bold text-brand-300 text-lg neon-text" id="p-mensuel">—</div></div>
     </div>
   </div>
 
   <!-- SITUATION ACTUELLE -->
-  <div class="card" id="stats-section" style="display:none">
-    <h2>Situation actuelle</h2>
-    <div class="stats-grid">
-      <div class="stat-box box-teal">
-        <div class="stat-label">Kilométrage actuel</div>
-        <div class="stat-value col-dark" id="s-kmActuel">—</div>
-        <div class="stat-sub" id="s-moisEcoule">—</div>
+  <div class="glass-panel p-6" id="stats-section" style="display:none">
+    <h2 class="text-xl font-bold text-gray-200 mb-4 font-display flex items-center gap-2"><span class="material-symbols-outlined">monitoring</span> Monitoring Actuel</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div class="p-4 rounded-xl box-teal">
+        <div class="text-xs text-brand-300 opacity-80 mb-2 font-semibold tracking-wider uppercase">Kilométrage actuel</div>
+        <div class="text-3xl font-bold col-dark font-display" id="s-kmActuel">—</div>
+        <div class="text-xs text-gray-400 mt-1 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">calendar_month</span> <span id="s-moisEcoule">—</span></div>
       </div>
-      <div class="stat-box" id="s-ecart-box">
-        <div class="stat-label">Écart vs théorique</div>
-        <div class="stat-value" id="s-ecart">—</div>
-        <div class="stat-sub" id="s-ecart-msg">—</div>
+      <div class="p-4 rounded-xl" id="s-ecart-box">
+        <div class="text-xs text-gray-400 mb-2 font-semibold tracking-wider uppercase">Écart vs théorique</div>
+        <div class="text-3xl font-bold font-display" id="s-ecart">—</div>
+        <div class="text-xs text-gray-400 mt-1 flex items-center gap-1 text-semibold" id="s-ecart-msg">—</div>
       </div>
-      <div class="stat-box box-purple">
-        <div class="stat-label">Moyennes réelles</div>
-        <div class="moyennes-grid">
-          <div class="moy-item">
-            <div class="moy-label">Par mois</div>
-            <div class="moy-value" id="s-moyMois">—</div>
-            <div class="moy-ref" id="s-moyMoisRef">—</div>
+      <div class="p-4 rounded-xl box-purple">
+        <div class="text-xs text-purple-300 opacity-80 mb-2 font-semibold tracking-wider uppercase">Moyennes réelles</div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <div class="text-[10px] text-gray-400 mb-1 uppercase tracking-wider">Mois</div>
+            <div class="text-xl font-bold col-purple font-display" id="s-moyMois">—</div>
+            <div class="text-[10px] text-gray-400 mt-1" id="s-moyMoisRef">—</div>
           </div>
-          <div class="moy-item">
-            <div class="moy-label">Par semaine</div>
-            <div class="moy-value" id="s-moySem">—</div>
-            <div class="moy-ref" id="s-moySemRef">—</div>
+          <div>
+            <div class="text-[10px] text-gray-400 mb-1 uppercase tracking-wider">Semaine</div>
+            <div class="text-xl font-bold col-purple font-display" id="s-moySem">—</div>
+            <div class="text-[10px] text-gray-400 mt-1" id="s-moySemRef">—</div>
           </div>
         </div>
       </div>
@@ -323,8 +273,8 @@
   <div class="year-tables" id="year-tables"></div>
 
   <!-- LÉGENDE -->
-  <div class="card">
-    <h2 style="margin-bottom:12px">Légende</h2>
+  <div class="glass-panel p-6">
+    <h2 class="text-lg font-bold text-gray-200 mb-3 font-display flex items-center gap-2"><span class="material-symbols-outlined text-[20px]">info</span> Légende</h2>
     <div class="legend-grid">
       <div><span>Chrono :</span> Numéro du mois depuis le début du contrat</div>
       <div><span>Échéancier :</span> Kilométrage théorique prévu selon le forfait</div>
@@ -419,17 +369,17 @@
     const sign = stats.ecartActuel >= 0 ? '+' : '';
     ecartEl.textContent = sign + fmt(Math.round(stats.ecartActuel)) + ' km';
     if (stats.ecartActuel > 500) {
-      ecartBox.className = 'stat-box box-red';
-      ecartEl.className  = 'stat-value col-red';
-      ecartMsg.textContent = '⚠ Dépassement en cours';
+      ecartBox.className = 'p-4 rounded-xl box-red';
+      ecartEl.className  = 'text-3xl font-bold font-display col-red';
+      ecartMsg.innerHTML = '<span class="material-symbols-outlined text-[14px]">warning</span> Dépassement en cours';
     } else if (stats.ecartActuel < -500) {
-      ecartBox.className = 'stat-box box-green';
-      ecartEl.className  = 'stat-value col-green';
-      ecartMsg.textContent = '✓ En avance sur le forfait';
+      ecartBox.className = 'p-4 rounded-xl box-green';
+      ecartEl.className  = 'text-3xl font-bold font-display col-green';
+      ecartMsg.innerHTML = '<span class="material-symbols-outlined text-[14px]">check_circle</span> En avance sur le forfait';
     } else {
-      ecartBox.className = 'stat-box box-neutral';
-      ecartEl.className  = 'stat-value col-gray';
-      ecartMsg.textContent = 'Dans les clous';
+      ecartBox.className = 'p-4 rounded-xl box-neutral';
+      ecartEl.className  = 'text-3xl font-bold font-display col-gray';
+      ecartMsg.innerHTML = '<span class="material-symbols-outlined text-[14px]">done</span> Dans les clous';
     }
 
     const monthly = config.forfaitTotal / config.dureeMois;
@@ -522,16 +472,16 @@
     }
 
     container.innerHTML = Object.entries(byYear).map(([year, rows]) => `
-      <div class="year-block">
-        <div class="year-header">${year}</div>
+      <div class="glass-panel overflow-hidden">
+        <div class="year-header flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">calendar_today</span> ${year}</div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
                 <th>Chrono</th>
-                <th class="col-hide-mobile">Date</th>
+                <th>Date</th>
                 <th>km prévu</th>
-                <th class="bg-yellow col-hide-mobile">Date relevé</th>
+                <th class="bg-yellow">Date relevé</th>
                 <th class="bg-yellow">km relevé</th>
                 <th>Delta</th>
               </tr>
@@ -540,9 +490,9 @@
               ${rows.map(row => `
                 <tr>
                   <td class="mono col-gray">${row.chrono}</td>
-                  <td class="col-hide-mobile">${row.date.toLocaleDateString('fr-FR')}</td>
+                  <td>${row.date.toLocaleDateString('fr-FR')}</td>
                   <td class="mono col-kmEch">${fmt(Math.round(row.kmEch))}</td>
-                  <td class="bg-yellow col-hide-mobile">
+                  <td class="bg-yellow">
                     <input type="date" value="${esc(row.dateReleve)}"
                       data-chrono="${row.chrono}" data-field="date"
                       onchange="updateReleve(this)">
