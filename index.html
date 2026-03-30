@@ -213,6 +213,22 @@
       .header { padding: 16px; }
       .header h1 { font-size: 1.3rem; }
       .card { padding: 16px; }
+
+      /* Table mobile : cacher date échéancier et date relevé, garder chrono / km théo / km relevé / delta */
+      .col-hide-mobile { display: none; }
+
+      table { font-size: 0.9rem; }
+      td, th { padding: 10px 6px; }
+
+      /* Input km relevé : grand et facile à taper */
+      td input[type="number"] {
+        font-size: 1rem;
+        padding: 8px 6px;
+        min-width: 80px;
+      }
+
+      /* Colonne km théorique : plus compacte */
+      .col-kmEch { font-size: 0.8rem; color: var(--gray); }
     }
   </style>
 </head>
@@ -513,26 +529,20 @@
             <thead>
               <tr>
                 <th>Chrono</th>
-                <th colspan="2">ÉCHÉANCIER</th>
-                <th colspan="2" class="bg-yellow">RELEVÉS</th>
+                <th class="col-hide-mobile">Date</th>
+                <th>km prévu</th>
+                <th class="bg-yellow col-hide-mobile">Date relevé</th>
+                <th class="bg-yellow">km relevé</th>
                 <th>Delta</th>
-              </tr>
-              <tr>
-                <th></th>
-                <th>Date</th>
-                <th>km</th>
-                <th class="bg-yellow">Date</th>
-                <th class="bg-yellow">km</th>
-                <th>km</th>
               </tr>
             </thead>
             <tbody>
               ${rows.map(row => `
                 <tr>
                   <td class="mono col-gray">${row.chrono}</td>
-                  <td>${row.date.toLocaleDateString('fr-FR')}</td>
-                  <td class="mono">${fmt(Math.round(row.kmEch))}</td>
-                  <td class="bg-yellow">
+                  <td class="col-hide-mobile">${row.date.toLocaleDateString('fr-FR')}</td>
+                  <td class="mono col-kmEch">${fmt(Math.round(row.kmEch))}</td>
+                  <td class="bg-yellow col-hide-mobile">
                     <input type="date" value="${esc(row.dateReleve)}"
                       data-chrono="${row.chrono}" data-field="date"
                       onchange="updateReleve(this)">
