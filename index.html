@@ -291,7 +291,7 @@
     const endKm   = config.startKm + config.totalKm;
     const proj    = current + remaining * pace;
     const projGap = proj - endKm;
-    const pct     = Math.min(100, (driven / config.totalKm) * 100);
+    const pct     = Math.min(100, Math.max(0, (driven / config.totalKm) * 100));
 
     setEl('d-current', fmtKm(current), 'neutral');
     setEl('d-allowed', fmtKm(Math.round(allowedToday)), 'neutral');
@@ -347,7 +347,7 @@
       return `<tr>
         <td>${fmtDate(entry.date)}</td>
         <td><strong>${fmtKm(entry.km)}</strong></td>
-        <td style="color:var(--muted)">+${fmtKm(delta)}</td>
+        <td style="color:var(--muted)">${delta >= 0 ? '+' : ''}${fmtKm(delta)}</td>
         <td class="${gapClass}">${gapSign}${fmtKm(Math.round(gapAt))}</td>
         <td>${entry.label ? `<span class="tag">${escHtml(entry.label)}</span>` : ''}</td>
         <td><button class="btn-danger" data-id="${entry.id}" title="Supprimer">🗑</button></td>
@@ -370,17 +370,28 @@
       return;
     }
 
-    const res = await fetch(`${API}?action=add_entry`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ date, km, label })
-    }).then(r => r.json());
+    const btn = document.getElementById('btn-save-entry');
+    btn.disabled = true;
+    try {
+      const res = await fetch(`${API}?action=add_entry`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date, km, label })
+      }).then(r => r.json());
 
-    if (res.success) {
-      document.getElementById('f-km').value    = '';
-      document.getElementById('f-label').value = '';
-      showMsg('saisie-msg', `✓ ${fmtKm(km)} enregistrés.`, 'var(--green)', 3000);
-      await loadAll();
+      if (res.success) {
+        document.getElementById('f-km').value    = '';
+        document.getElementById('f-label').value = '';
+        document.getElementById('f-date').value  = todayISO();
+        showMsg('saisie-msg', `✓ ${fmtKm(km)} enregistrés.`, 'var(--green)', 3000);
+        await loadAll();
+      } else {
+        showMsg('saisie-msg', `⚠ Erreur : ${res.error || 'inconnue'}`, 'var(--red)');
+      }
+    } catch (e) {
+      showMsg('saisie-msg', '⚠ Impossible de joindre le serveur.', 'var(--red)');
+    } finally {
+      btn.disabled = false;
     }
   }
 
@@ -406,22 +417,36 @@
   }
 
   async function saveConfig() {
-    const payload = {
-      vehicle:        document.getElementById('c-vehicle').value,
-      startDate:      document.getElementById('c-startDate').value,
-      startKm:        parseFloat(document.getElementById('c-startKm').value),
-      durationMonths: parseFloat(document.getElementById('c-duration').value),
-      totalKm:        parseFloat(document.getElementById('c-totalKm').value)
-    };
-    const res = await fetch(`${API}?action=update_config`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).then(r => r.json());
+    const vehicle        = document.getElementById('c-vehicle').value;
+    const startDate      = document.getElementById('c-startDate').value;
+    const startKm        = parseFloat(document.getElementById('c-startKm').value);
+    const durationMonths = parseFloat(document.getElementById('c-duration').value);
+    const totalKm        = parseFloat(document.getElementById('c-totalKm').value);
 
-    if (res.success) {
-      showMsg('config-msg', '✓ Paramètres enregistrés', 'var(--green)', 3000);
-      await loadAll();
+    if (!vehicle || !startDate || isNaN(startKm) || isNaN(durationMonths) || isNaN(totalKm)) {
+      showMsg('config-msg', '⚠ Tous les champs sont requis.', 'var(--red)', 3000);
+      return;
+    }
+
+    const btn = document.getElementById('btn-save-config');
+    btn.disabled = true;
+    try {
+      const res = await fetch(`${API}?action=update_config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vehicle, startDate, startKm, durationMonths, totalKm })
+      }).then(r => r.json());
+
+      if (res.success) {
+        showMsg('config-msg', '✓ Paramètres enregistrés', 'var(--green)', 3000);
+        await loadAll();
+      } else {
+        showMsg('config-msg', `⚠ Erreur : ${res.error || 'inconnue'}`, 'var(--red)', 3000);
+      }
+    } catch (e) {
+      showMsg('config-msg', '⚠ Impossible de joindre le serveur.', 'var(--red)', 3000);
+    } finally {
+      btn.disabled = false;
     }
   }
 
@@ -439,7 +464,12 @@
   }
 
   function escHtml(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return s
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
   }
 
   function showMsg(id, text, color, clearAfter = 0) {
