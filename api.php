@@ -30,11 +30,22 @@ function loadData() {
 }
 
 function saveData($data) {
+    $dir = dirname(DATA_FILE);
+    if (!is_dir($dir)) {
+        mkdir($dir, 0755, true);
+    }
     file_put_contents(DATA_FILE, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
 
 $action = $_GET['action'] ?? '';
 $data   = loadData();
+
+if (in_array($action, ['update_config', 'add_entry', 'delete_entry'])
+    && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['error' => 'Method Not Allowed']);
+    exit;
+}
 
 switch ($action) {
     case 'config':
@@ -69,7 +80,7 @@ switch ($action) {
         $entry = [
             'id'    => (int)(microtime(true) * 1000),
             'date'  => (string)$input['date'],
-            'km'    => (int)$input['km'],
+            'km'    => (float)$input['km'],
             'label' => (string)($input['label'] ?? '')
         ];
         $data['entries'][] = $entry;
@@ -85,9 +96,15 @@ switch ($action) {
             break;
         }
         $id = $input['id'];
+        $before = count($data['entries']);
         $data['entries'] = array_values(
             array_filter($data['entries'], fn($e) => $e['id'] != $id)
         );
+        if (count($data['entries']) === $before) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Entry not found']);
+            break;
+        }
         saveData($data);
         echo json_encode(['success' => true]);
         break;
