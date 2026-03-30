@@ -10,13 +10,15 @@ define('DATA_FILE', __DIR__ . '/data/data.json');
 
 $defaultData = [
     'config' => [
-        'vehicle'        => 'Fiat 500e (AM 2022)',
-        'startDate'      => '2025-08-06',
-        'startKm'        => 7462,
-        'durationMonths' => 50,
-        'totalKm'        => 41167
+        'vehicule'         => 'Fiat 500e (AM 2022)',
+        'dateAnniversaire' => '2025-08-06',
+        'kmInitial'        => 7462,
+        'dureeMois'        => 50,
+        'forfaitTotal'     => 41167
     ],
-    'entries' => []
+    'releves' => [
+        'chrono-2' => ['date' => '2025-10-09', 'km' => 9940]
+    ]
 ];
 
 function loadData() {
@@ -38,75 +40,52 @@ function saveData($data) {
 }
 
 $action = $_GET['action'] ?? '';
-$data   = loadData();
-
-if (in_array($action, ['update_config', 'add_entry', 'delete_entry'])
-    && $_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['error' => 'Method Not Allowed']);
-    exit;
-}
 
 switch ($action) {
-    case 'config':
-        echo json_encode($data['config']);
+
+    case 'data':
+        echo json_encode(loadData());
         break;
 
-    case 'update_config':
-        $input = json_decode(file_get_contents('php://input'), true) ?? [];
-        foreach (['vehicle', 'startDate'] as $key) {
-            if (isset($input[$key])) $data['config'][$key] = (string)$input[$key];
+    case 'save':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['error' => 'Method Not Allowed']);
+            exit;
         }
-        foreach (['startKm', 'durationMonths', 'totalKm'] as $key) {
-            if (isset($input[$key])) $data['config'][$key] = (float)$input[$key];
-        }
-        saveData($data);
-        echo json_encode(['success' => true, 'config' => $data['config']]);
-        break;
-
-    case 'entries':
-        $entries = $data['entries'];
-        usort($entries, fn($a, $b) => strcmp($b['date'], $a['date']));
-        echo json_encode($entries);
-        break;
-
-    case 'add_entry':
-        $input = json_decode(file_get_contents('php://input'), true) ?? [];
-        if (empty($input['date']) || !isset($input['km'])) {
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!isset($input['config']) || !isset($input['releves'])) {
             http_response_code(400);
-            echo json_encode(['error' => 'date and km required']);
-            break;
+            echo json_encode(['error' => 'config and releves required']);
+            exit;
         }
-        $entry = [
-            'id'    => (int)(microtime(true) * 1000),
-            'date'  => (string)$input['date'],
-            'km'    => (float)$input['km'],
-            'label' => (string)($input['label'] ?? '')
-        ];
-        $data['entries'][] = $entry;
-        saveData($data);
-        echo json_encode(['success' => true, 'entry' => $entry]);
+        $config = [];
+        $config['vehicule']         = (string)($input['config']['vehicule'] ?? 'Fiat 500e');
+        $config['dateAnniversaire'] = (string)($input['config']['dateAnniversaire'] ?? '');
+        $config['kmInitial']        = (float)($input['config']['kmInitial'] ?? 0);
+        $config['dureeMois']        = (int)($input['config']['dureeMois'] ?? 1);
+        $config['forfaitTotal']     = (float)($input['config']['forfaitTotal'] ?? 0);
+
+        $releves = [];
+        foreach ($input['releves'] as $key => $releve) {
+            if (!preg_match('/^chrono-\d+$/', $key)) continue;
+            $entry = ['date' => (string)($releve['date'] ?? '')];
+            if (isset($releve['km']) && $releve['km'] !== '' && $releve['km'] !== null) {
+                $entry['km'] = (float)$releve['km'];
+            }
+            $releves[$key] = $entry;
+        }
+
+        saveData(['config' => $config, 'releves' => $releves]);
+        echo json_encode(['success' => true, 'savedAt' => date('H:i')]);
         break;
 
-    case 'delete_entry':
-        $input = json_decode(file_get_contents('php://input'), true) ?? [];
-        if (!isset($input['id'])) {
-            http_response_code(400);
-            echo json_encode(['error' => 'id required']);
-            break;
-        }
-        $id = $input['id'];
-        $before = count($data['entries']);
-        $data['entries'] = array_values(
-            array_filter($data['entries'], fn($e) => $e['id'] != $id)
-        );
-        if (count($data['entries']) === $before) {
-            http_response_code(404);
-            echo json_encode(['error' => 'Entry not found']);
-            break;
-        }
-        saveData($data);
-        echo json_encode(['success' => true]);
+    case 'backup':
+        $data = file_exists(DATA_FILE) ? file_get_contents(DATA_FILE) : json_encode(loadData());
+        $timestamp = date('Y-m-d_H-i');
+        header('Content-Type: application/json');
+        header("Content-Disposition: attachment; filename=\"suivi-km-backup-{$timestamp}.json\"");
+        echo $data;
         break;
 
     default:

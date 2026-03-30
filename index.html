@@ -3,481 +3,671 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Suivi km — Fiat 500e</title>
+  <meta name="description" content="Suivi kilométrique Fiat 500e - Contrat LOA">
+  <title>Suivi Kilométrique Fiat 500e</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --red:    #c62828;
-      --green:  #2e7d32;
-      --blue:   #1565c0;
-      --bg:     #f4f4f6;
+      --dark:   #1F3A3D;
+      --darker: #14282A;
+      --teal:   #E8F2F1;
+      --red:    #dc2626;
+      --redbg:  #fef2f2;
+      --orange: #ea580c;
+      --orangebg: #fff7ed;
+      --green:  #16a34a;
+      --greenbg:#f0fdf4;
+      --purple: #9333ea;
+      --purplebg:#faf5ff;
+      --gray:   #6b7280;
+      --border: #e5e7eb;
+      --bg:     #f3f4f6;
       --card:   #ffffff;
-      --text:   #212121;
-      --muted:  #757575;
-      --border: #e0e0e0;
-      --fiat:   #c62828;
+      --text:   #111827;
     }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: var(--bg);
       color: var(--text);
+      min-height: 100vh;
       padding: 16px;
-      max-width: 820px;
-      margin: 0 auto;
     }
 
-    h1 { font-size: 1.4rem; color: var(--fiat); margin-bottom: 16px; }
-    h2 { font-size: 0.8rem; color: var(--muted); text-transform: uppercase;
-         letter-spacing: 0.06em; margin-bottom: 14px; }
+    .container { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
 
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(to right, var(--dark), var(--darker));
+      border-radius: 12px;
+      padding: 24px;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .header h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 4px; }
+    .header .subtitle { opacity: 0.75; font-size: 0.95rem; }
+    .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+    .save-status { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; }
+    .save-status.saving  { color: #fcd34d; }
+    .save-status.saved   { color: #6ee7b7; }
+    .save-status.error   { color: #fca5a5; }
+    .save-status svg { flex-shrink: 0; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { animation: spin 1s linear infinite; display: inline-block; width: 14px; height: 14px;
+            border: 2px solid #fcd34d; border-top-color: transparent; border-radius: 50%; }
+
+    .btn {
+      padding: 8px 16px; border-radius: 8px; font-size: 0.88rem;
+      font-weight: 600; cursor: pointer; border: none;
+      display: inline-flex; align-items: center; gap: 6px; transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-light   { background: rgba(255,255,255,0.2); color: white; }
+    .btn-white   { background: white; color: var(--dark); }
+    .btn-dark    { background: var(--dark); color: white; }
+    .btn-outline { background: transparent; color: #374151; border: 1px solid var(--border); }
+
+    /* ── Cards ── */
     .card {
       background: var(--card);
       border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 16px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      padding: 24px;
     }
+    .card h2 { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 16px; }
 
-    /* ── Tabs ── */
-    .tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
-    .tab {
-      padding: 8px 18px; border-radius: 8px; font-size: 0.9rem;
-      cursor: pointer; background: var(--card);
-      border: 1px solid var(--border); color: var(--muted);
-    }
-    .tab.active { background: var(--fiat); color: white; border-color: var(--fiat); }
-    .section { display: none; }
-    .section.active { display: block; }
-
-    /* ── Dashboard ── */
-    .dash-grid {
+    /* ── Paramètres summary ── */
+    .params-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 16px; margin-bottom: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 16px;
     }
-    .dash-item { text-align: center; padding: 12px; background: var(--bg); border-radius: 10px; }
-    .dash-item .value { font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
-    .dash-item .label { font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
-    .over    { color: var(--red); }
-    .under   { color: var(--green); }
-    .neutral { color: var(--blue); }
+    .param-item .label { font-size: 0.75rem; color: var(--gray); margin-bottom: 2px; }
+    .param-item .value { font-weight: 700; font-size: 0.95rem; }
+    .param-item .value.accent { color: var(--dark); }
 
-    .progress-bar-wrap {
-      background: var(--border); border-radius: 6px;
-      height: 10px; overflow: hidden; margin: 12px 0 4px;
-    }
-    .progress-bar { height: 100%; border-radius: 6px; background: var(--fiat); transition: width 0.4s; }
-    .progress-label { font-size: 0.78rem; color: var(--muted); text-align: right; }
-    .summary-text {
-      font-size: 0.88rem; line-height: 1.7;
-      margin-top: 14px; padding: 12px 14px;
-      background: var(--bg); border-radius: 8px;
-    }
+    /* ── Stats ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px; }
 
-    /* ── Forms ── */
-    .form-row {
-      display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;
-    }
-    .form-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 120px; }
-    label { font-size: 0.78rem; color: var(--muted); }
-    input[type="date"], input[type="number"], input[type="text"] {
-      padding: 9px 11px; border: 1px solid var(--border);
-      border-radius: 8px; font-size: 0.95rem; width: 100%; background: #fafafa;
-    }
-    input:focus { outline: none; border-color: var(--fiat); }
+    .stat-box { padding: 16px; border-radius: 10px; }
+    .stat-box .stat-label { font-size: 0.78rem; color: var(--gray); margin-bottom: 6px; }
+    .stat-box .stat-value { font-size: 1.6rem; font-weight: 700; line-height: 1.1; }
+    .stat-box .stat-sub   { font-size: 0.73rem; color: var(--gray); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
 
-    button { padding: 9px 20px; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer; }
-    .btn-primary  { background: var(--fiat); color: white; }
-    .btn-primary:hover  { background: #a31515; }
-    .btn-secondary { background: var(--border); color: var(--text); }
-    .btn-secondary:hover { background: #d0d0d0; }
-    .btn-danger { background: transparent; color: var(--muted); font-size: 1rem; padding: 4px 8px; }
-    .btn-danger:hover { color: var(--red); }
+    .box-teal   { background: var(--teal); }
+    .box-red    { background: var(--redbg); }
+    .box-green  { background: var(--greenbg); }
+    .box-neutral{ background: #f9fafb; }
+    .box-purple { background: var(--purplebg); }
 
-    /* ── Table ── */
-    table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
-    th { text-align: left; padding: 8px 6px; color: var(--muted); font-weight: 500;
-         border-bottom: 2px solid var(--border); white-space: nowrap; }
-    td { padding: 9px 6px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .col-dark   { color: var(--dark); }
+    .col-red    { color: var(--red); }
+    .col-green  { color: var(--green); }
+    .col-gray   { color: var(--gray); }
+    .col-purple { color: var(--purple); }
+
+    .moyennes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .moy-item .moy-label { font-size: 0.72rem; color: var(--gray); margin-bottom: 4px; }
+    .moy-item .moy-value { font-size: 1.3rem; font-weight: 700; color: var(--purple); }
+    .moy-item .moy-ref   { font-size: 0.7rem; color: var(--gray); margin-top: 2px; }
+
+    /* Projection box */
+    .proj-box {
+      padding: 16px; border-radius: 10px; border: 2px solid;
+      display: flex; justify-content: space-between; align-items: flex-start;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .proj-box.over   { background: var(--redbg);   border-color: #fca5a5; }
+    .proj-box.slight { background: var(--orangebg); border-color: #fdba74; }
+    .proj-box.ok     { background: var(--greenbg);  border-color: #86efac; }
+
+    .proj-left .proj-title { font-size: 0.82rem; font-weight: 600; color: #374151; display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+    .proj-left .proj-km    { font-size: 1.6rem; font-weight: 700; }
+    .proj-left .proj-msg   { font-weight: 600; font-size: 0.85rem; margin-top: 4px; }
+    .proj-right { text-align: right; }
+    .proj-right .pct-label { font-size: 0.78rem; color: var(--gray); }
+    .proj-right .pct-value { font-size: 2rem; font-weight: 700; }
+    .proj-right .pct-sub   { font-size: 0.7rem; color: var(--gray); }
+
+    .progress-wrap { margin-top: 12px; background: #e5e7eb; border-radius: 6px; height: 10px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 6px; transition: width 0.4s; }
+
+    /* ── Tables ── */
+    .year-tables { display: flex; flex-direction: column; gap: 16px; }
+    .year-block { background: var(--card); border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); overflow: hidden; }
+    .year-header { background: var(--dark); color: white; padding: 10px 16px; font-size: 1rem; font-weight: 700; }
+    .table-wrap  { overflow-x: auto; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+    thead tr:first-child th { background: #f3f4f6; padding: 8px 8px 4px; font-weight: 600; color: #374151; }
+    thead tr:last-child  th { background: #f9fafb; padding: 4px 8px 8px; font-size: 0.75rem; color: var(--gray); font-weight: 500; }
+    th { text-align: left; white-space: nowrap; }
+    th.bg-yellow { background: #fefce8 !important; }
+    td { padding: 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
-    .tag { font-size: 0.73rem; background: var(--bg); padding: 2px 7px;
-           border-radius: 4px; color: var(--muted); }
+    tr:nth-child(even) td { background: #f9fafb; }
+    tr:nth-child(even) td.bg-yellow { background: #fefce8 !important; }
+    td.bg-yellow { background: #fffbeb; }
 
-    /* ── Config ── */
-    .config-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 14px; margin-bottom: 16px;
+    .mono { font-family: ui-monospace, monospace; }
+
+    input[type="date"], input[type="number"] {
+      width: 100%; padding: 5px 7px; border: 1px solid var(--border);
+      border-radius: 6px; font-size: 0.8rem; background: white;
     }
+    input:focus { outline: none; border-color: var(--dark); }
 
-    @media (max-width: 480px) {
-      .dash-item .value { font-size: 1.2rem; }
-      .tabs { gap: 4px; }
-      .tab { padding: 7px 12px; font-size: 0.82rem; }
+    .delta-over    { color: var(--red);   font-weight: 700; }
+    .delta-under   { color: var(--green); font-weight: 700; }
+    .delta-neutral { color: var(--gray); }
+    .delta-empty   { color: #d1d5db; }
+
+    /* ── Legend ── */
+    .legend-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; font-size: 0.83rem; color: #374151; }
+    .legend-grid span { font-weight: 600; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5); z-index: 100;
+      align-items: center; justify-content: center; padding: 16px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: white; border-radius: 12px; width: 100%; max-width: 540px;
+      max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .modal-header {
+      background: var(--dark); color: white; padding: 16px 20px;
+      border-radius: 12px 12px 0 0;
+      display: flex; justify-content: space-between; align-items: center;
+      position: sticky; top: 0; z-index: 1;
+    }
+    .modal-header h2 { font-size: 1.1rem; font-weight: 700; }
+    .modal-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+    .modal-footer { background: #f9fafb; padding: 16px 20px; border-radius: 0 0 12px 12px; display: flex; justify-content: flex-end; gap: 10px; }
+
+    .form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: #374151; margin-bottom: 6px; }
+    .form-group input[type="text"],
+    .form-group input[type="date"],
+    .form-group input[type="number"] {
+      width: 100%; padding: 9px 12px; border: 1px solid var(--border);
+      border-radius: 8px; font-size: 0.92rem;
+    }
+    .calc-box { background: var(--teal); padding: 14px 16px; border-radius: 8px; }
+    .calc-box .calc-label { font-size: 0.75rem; color: var(--gray); }
+    .calc-box .calc-value { font-size: 1.5rem; font-weight: 700; color: var(--dark); }
+
+    .btn-close { background: rgba(255,255,255,0.15); border: none; color: white; cursor: pointer;
+                 padding: 4px; border-radius: 4px; display: flex; align-items: center; }
+    .btn-close:hover { background: rgba(255,255,255,0.25); }
+
+    @media (max-width: 600px) {
+      .header { padding: 16px; }
+      .header h1 { font-size: 1.3rem; }
+      .card { padding: 16px; }
     }
   </style>
 </head>
 <body>
+<div class="container">
 
-<h1>🚗 Suivi km — Fiat 500e</h1>
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <h1>Contrôle km / Contrat LOA</h1>
+      <div class="subtitle" id="header-vehicule">Fiat 500e (AM 2022)</div>
+    </div>
+    <div class="header-actions">
+      <div class="save-status" id="save-status"></div>
+      <button class="btn btn-light" id="btn-backup" onclick="downloadBackup()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Backup
+      </button>
+      <button class="btn btn-white" onclick="openModal()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Modifier
+      </button>
+    </div>
+  </div>
 
-<div class="tabs">
-  <button class="tab active" data-tab="dashboard">Dashboard</button>
-  <button class="tab" data-tab="saisie">Saisir</button>
-  <button class="tab" data-tab="historique">Historique</button>
-  <button class="tab" data-tab="parametres">Paramètres</button>
+  <!-- PARAMÈTRES SUMMARY -->
+  <div class="card">
+    <h2>Paramètres du contrat</h2>
+    <div class="params-grid">
+      <div class="param-item"><div class="label">Date anniversaire</div><div class="value" id="p-date">—</div></div>
+      <div class="param-item"><div class="label">Km initial</div><div class="value" id="p-kmInitial">—</div></div>
+      <div class="param-item"><div class="label">Durée</div><div class="value" id="p-duree">—</div></div>
+      <div class="param-item"><div class="label">Forfait total</div><div class="value" id="p-forfait">—</div></div>
+      <div class="param-item"><div class="label">Forfait mensuel</div><div class="value accent" id="p-mensuel">—</div></div>
+    </div>
+  </div>
+
+  <!-- SITUATION ACTUELLE -->
+  <div class="card" id="stats-section" style="display:none">
+    <h2>Situation actuelle</h2>
+    <div class="stats-grid">
+      <div class="stat-box box-teal">
+        <div class="stat-label">Kilométrage actuel</div>
+        <div class="stat-value col-dark" id="s-kmActuel">—</div>
+        <div class="stat-sub" id="s-moisEcoule">—</div>
+      </div>
+      <div class="stat-box" id="s-ecart-box">
+        <div class="stat-label">Écart vs théorique</div>
+        <div class="stat-value" id="s-ecart">—</div>
+        <div class="stat-sub" id="s-ecart-msg">—</div>
+      </div>
+      <div class="stat-box box-purple">
+        <div class="stat-label">Moyennes réelles</div>
+        <div class="moyennes-grid">
+          <div class="moy-item">
+            <div class="moy-label">Par mois</div>
+            <div class="moy-value" id="s-moyMois">—</div>
+            <div class="moy-ref" id="s-moyMoisRef">—</div>
+          </div>
+          <div class="moy-item">
+            <div class="moy-label">Par semaine</div>
+            <div class="moy-value" id="s-moySem">—</div>
+            <div class="moy-ref" id="s-moySemRef">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Projection -->
+    <div class="proj-box" id="proj-box">
+      <div class="proj-left">
+        <div class="proj-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          Projection fin de contrat
+        </div>
+        <div class="proj-km" id="proj-km">—</div>
+        <div class="proj-msg" id="proj-msg">—</div>
+      </div>
+      <div class="proj-right">
+        <div class="pct-label">Consommation</div>
+        <div class="pct-value" id="proj-pct">—</div>
+        <div class="pct-sub">du forfait</div>
+        <div class="pct-sub" id="proj-temps">—</div>
+      </div>
+    </div>
+    <div class="progress-wrap" style="margin-top:12px">
+      <div class="progress-fill" id="proj-bar" style="width:0%;background:var(--dark)"></div>
+    </div>
+  </div>
+
+  <!-- TABLEAUX PAR ANNÉE -->
+  <div class="year-tables" id="year-tables"></div>
+
+  <!-- LÉGENDE -->
+  <div class="card">
+    <h2 style="margin-bottom:12px">Légende</h2>
+    <div class="legend-grid">
+      <div><span>Chrono :</span> Numéro du mois depuis le début du contrat</div>
+      <div><span>Échéancier :</span> Kilométrage théorique prévu selon le forfait</div>
+      <div><span>Relevés :</span> Vos relevés réels (à saisir directement)</div>
+      <div><span>Delta :</span> Écart entre relevé et prévision (rouge = dépassement)</div>
+    </div>
+  </div>
+
 </div>
 
-<!-- Dashboard -->
-<div id="tab-dashboard" class="section active card">
-  <h2>Situation actuelle</h2>
-  <div class="dash-grid">
-    <div class="dash-item">
-      <div class="value neutral" id="d-current">—</div>
-      <div class="label">Km actuels</div>
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Paramètres du contrat</h2>
+      <button class="btn-close" onclick="closeModal()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
-    <div class="dash-item">
-      <div class="value neutral" id="d-allowed">—</div>
-      <div class="label">Autorisés aujourd'hui</div>
+    <div class="modal-body">
+      <div class="form-group"><label>Véhicule</label><input type="text" id="m-vehicule"></div>
+      <div class="form-group"><label>Date anniversaire</label><input type="date" id="m-date"></div>
+      <div class="form-group"><label>Kilométrage initial</label><input type="number" id="m-kmInitial" min="0"></div>
+      <div class="form-group"><label>Durée du contrat (mois)</label><input type="number" id="m-duree" min="1"></div>
+      <div class="form-group"><label>Forfait total (km)</label><input type="number" id="m-forfait" min="0"></div>
+      <div class="calc-box">
+        <div class="calc-label">Forfait mensuel calculé</div>
+        <div class="calc-value" id="m-calc">— km/mois</div>
+      </div>
     </div>
-    <div class="dash-item">
-      <div class="value" id="d-gap">—</div>
-      <div class="label">Écart</div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Annuler</button>
+      <button class="btn btn-dark" onclick="saveConfig()">Enregistrer</button>
     </div>
-    <div class="dash-item">
-      <div class="value neutral" id="d-proj">—</div>
-      <div class="label">Projection fin contrat</div>
-    </div>
-  </div>
-  <div class="progress-bar-wrap">
-    <div class="progress-bar" id="progress-bar" style="width:0%"></div>
-  </div>
-  <div class="progress-label" id="progress-label"></div>
-  <div class="summary-text" id="summary-text">Chargement...</div>
-</div>
-
-<!-- Saisie -->
-<div id="tab-saisie" class="section card">
-  <h2>Nouvelle saisie</h2>
-  <div class="form-row">
-    <div class="form-group">
-      <label for="f-date">Date</label>
-      <input type="date" id="f-date">
-    </div>
-    <div class="form-group">
-      <label for="f-km">Km compteur</label>
-      <input type="number" id="f-km" placeholder="ex: 12 500" min="0">
-    </div>
-    <div class="form-group">
-      <label for="f-label">Libellé (optionnel)</label>
-      <input type="text" id="f-label" placeholder="ex: Chrono 3">
-    </div>
-    <button class="btn-primary" id="btn-save-entry">Enregistrer</button>
-  </div>
-  <div id="saisie-msg" style="margin-top:10px;font-size:0.85rem;min-height:20px;"></div>
-</div>
-
-<!-- Historique -->
-<div id="tab-historique" class="section card">
-  <h2>Historique des relevés</h2>
-  <div style="overflow-x:auto">
-    <table>
-      <thead><tr>
-        <th>Date</th><th>Km</th><th>Δ km</th><th>Écart LOA</th><th>Libellé</th><th></th>
-      </tr></thead>
-      <tbody id="historique-body">
-        <tr><td colspan="6" style="color:var(--muted)">Aucune saisie</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- Paramètres -->
-<div id="tab-parametres" class="section card">
-  <h2>Paramètres du contrat LOA</h2>
-  <div class="config-grid">
-    <div class="form-group">
-      <label for="c-vehicle">Véhicule</label>
-      <input type="text" id="c-vehicle">
-    </div>
-    <div class="form-group">
-      <label for="c-startDate">Date début contrat</label>
-      <input type="date" id="c-startDate">
-    </div>
-    <div class="form-group">
-      <label for="c-startKm">Km au départ</label>
-      <input type="number" id="c-startKm" min="0">
-    </div>
-    <div class="form-group">
-      <label for="c-duration">Durée (mois)</label>
-      <input type="number" id="c-duration" min="1">
-    </div>
-    <div class="form-group">
-      <label for="c-totalKm">Km total autorisé</label>
-      <input type="number" id="c-totalKm" min="0">
-    </div>
-  </div>
-  <div style="display:flex;gap:10px;align-items:center">
-    <button class="btn-primary" id="btn-save-config">Enregistrer</button>
-    <span id="config-msg" style="font-size:0.85rem;"></span>
   </div>
 </div>
 
 <script>
   const API = './api.php';
-  let state = { config: null, entries: [] };
+
+  // ─── State ────────────────────────────────────────────────────────
+  let config = {
+    vehicule: 'Fiat 500e (AM 2022)',
+    dateAnniversaire: '2025-08-06',
+    kmInitial: 7462,
+    dureeMois: 50,
+    forfaitTotal: 41167
+  };
+  let releves = {};
+  let saveTimer = null;
 
   // ─── Init ─────────────────────────────────────────────────────────
   async function init() {
-    document.getElementById('f-date').value = todayISO();
-    setupTabs();
-    document.getElementById('btn-save-entry').addEventListener('click', addEntry);
-    document.getElementById('btn-save-config').addEventListener('click', saveConfig);
-    await loadAll();
-  }
-
-  async function loadAll() {
     try {
-      const [config, entries] = await Promise.all([
-        fetch(`${API}?action=config`).then(r => r.json()),
-        fetch(`${API}?action=entries`).then(r => r.json())
-      ]);
-      state.config  = config;
-      state.entries = entries;
-      renderDashboard();
-      renderHistorique();
-      fillConfigForm();
-    } catch (e) {
-      document.getElementById('summary-text').textContent =
-        'Erreur de connexion à api.php. Vérifiez que le serveur PHP est actif.';
+      const data = await fetch(`${API}?action=data`).then(r => r.json());
+      config  = data.config  || config;
+      releves = data.releves || releves;
+    } catch(e) {
+      console.warn('Mode hors ligne — données par défaut');
+    }
+    render();
+  }
+
+  // ─── Render ───────────────────────────────────────────────────────
+  function render() {
+    renderParams();
+    renderStats();
+    renderTables();
+  }
+
+  function renderParams() {
+    document.getElementById('header-vehicule').textContent = config.vehicule;
+    document.getElementById('p-date').textContent      = fmtDate(config.dateAnniversaire);
+    document.getElementById('p-kmInitial').textContent  = fmt(config.kmInitial) + ' km';
+    document.getElementById('p-duree').textContent     = config.dureeMois + ' mois';
+    document.getElementById('p-forfait').textContent   = fmt(config.forfaitTotal) + ' km';
+    document.getElementById('p-mensuel').textContent   = fmt(Math.round(config.forfaitTotal / config.dureeMois)) + ' km/mois';
+  }
+
+  function renderStats() {
+    const stats = computeStats();
+    const section = document.getElementById('stats-section');
+    if (!stats) { section.style.display = 'none'; return; }
+    section.style.display = 'block';
+
+    document.getElementById('s-kmActuel').textContent  = fmt(Math.round(stats.kmActuel)) + ' km';
+    document.getElementById('s-moisEcoule').textContent = `Après ${stats.moisEcoule} mois`;
+
+    const ecartBox = document.getElementById('s-ecart-box');
+    const ecartEl  = document.getElementById('s-ecart');
+    const ecartMsg = document.getElementById('s-ecart-msg');
+    const sign = stats.ecartActuel >= 0 ? '+' : '';
+    ecartEl.textContent = sign + fmt(Math.round(stats.ecartActuel)) + ' km';
+    if (stats.ecartActuel > 500) {
+      ecartBox.className = 'stat-box box-red';
+      ecartEl.className  = 'stat-value col-red';
+      ecartMsg.textContent = '⚠ Dépassement en cours';
+    } else if (stats.ecartActuel < -500) {
+      ecartBox.className = 'stat-box box-green';
+      ecartEl.className  = 'stat-value col-green';
+      ecartMsg.textContent = '✓ En avance sur le forfait';
+    } else {
+      ecartBox.className = 'stat-box box-neutral';
+      ecartEl.className  = 'stat-value col-gray';
+      ecartMsg.textContent = 'Dans les clous';
+    }
+
+    const monthly = config.forfaitTotal / config.dureeMois;
+    document.getElementById('s-moyMois').textContent    = fmt(Math.round(stats.kmMoyenReel)) + ' km';
+    document.getElementById('s-moyMoisRef').textContent = `Forfait : ${fmt(Math.round(monthly))} km`;
+    document.getElementById('s-moySem').textContent     = fmt(Math.round(stats.kmMoyenReel / 4.33)) + ' km';
+    document.getElementById('s-moySemRef').textContent  = `Forfait : ${fmt(Math.round(monthly / 4.33))} km`;
+
+    // Projection
+    const projBox = document.getElementById('proj-box');
+    const projKm  = document.getElementById('proj-km');
+    const projMsg = document.getElementById('proj-msg');
+    projKm.textContent = fmt(Math.round(stats.projectionFin)) + ' km';
+    if (stats.depassementPrevu > 1000) {
+      projBox.className = 'proj-box over';
+      projMsg.innerHTML = `<span style="color:var(--red)">⚠️ Dépassement prévu : +${fmt(Math.round(stats.depassementPrevu))} km</span>`;
+    } else if (stats.depassementPrevu > 0) {
+      projBox.className = 'proj-box slight';
+      projMsg.innerHTML = `<span style="color:var(--orange)">⚠ Dépassement prévu : +${fmt(Math.round(stats.depassementPrevu))} km</span>`;
+    } else {
+      projBox.className = 'proj-box ok';
+      projMsg.innerHTML = `<span style="color:var(--green)">✓ Forfait respecté : ${fmt(Math.round(Math.abs(stats.depassementPrevu)))} km restants</span>`;
+    }
+
+    const pct = stats.pctConsome;
+    document.getElementById('proj-pct').textContent   = pct.toFixed(1) + '%';
+    document.getElementById('proj-temps').textContent = `(${stats.pctTemps.toFixed(1)}% du temps écoulé)`;
+
+    const bar = document.getElementById('proj-bar');
+    bar.style.width = Math.min(100, Math.max(0, pct)).toFixed(1) + '%';
+    bar.style.background = pct > stats.pctTemps + 10 ? 'var(--red)' :
+                           pct < stats.pctTemps - 10 ? 'var(--green)' : 'var(--dark)';
+
+    if (stats.depassementPrevu > 1000) {
+      document.getElementById('proj-pct').className = 'pct-value col-red';
+    } else if (stats.depassementPrevu < 0) {
+      document.getElementById('proj-pct').className = 'pct-value col-green';
+    } else {
+      document.getElementById('proj-pct').className = 'pct-value col-gray';
     }
   }
 
-  // ─── Tabs ─────────────────────────────────────────────────────────
-  function setupTabs() {
-    document.querySelectorAll('.tab').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const name = btn.dataset.tab;
-        document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById(`tab-${name}`).classList.add('active');
-      });
-    });
+  function computeStats() {
+    const filled = Object.entries(releves)
+      .filter(([k, r]) => r.km)
+      .map(([k, r]) => ({ ...r, chrono: parseInt(k.replace('chrono-', '')) }))
+      .sort((a, b) => a.chrono - b.chrono);
+
+    if (!filled.length) return null;
+
+    const last     = filled[filled.length - 1];
+    const monthly  = config.forfaitTotal / config.dureeMois;
+    const kmTheo   = config.kmInitial + monthly * last.chrono;
+    const ecart    = last.km - kmTheo;
+    const moyMois  = (last.km - config.kmInitial) / (last.chrono || 1);
+    const projFin  = config.kmInitial + moyMois * config.dureeMois;
+    const depas    = projFin - (config.kmInitial + config.forfaitTotal);
+    const pctCons  = (last.km - config.kmInitial) / config.forfaitTotal * 100;
+    const pctTemps = last.chrono / config.dureeMois * 100;
+
+    return {
+      kmActuel: last.km,
+      moisEcoule: last.chrono,
+      ecartActuel: ecart,
+      kmMoyenReel: moyMois,
+      projectionFin: projFin,
+      depassementPrevu: depas,
+      pctConsome: pctCons,
+      pctTemps: pctTemps
+    };
   }
 
-  // ─── Dashboard ────────────────────────────────────────────────────
-  function renderDashboard() {
-    const { config, entries } = state;
-    if (!config) return;
+  function renderTables() {
+    const container = document.getElementById('year-tables');
+    const startDate = new Date(config.dateAnniversaire + 'T00:00:00');
+    const monthly   = config.forfaitTotal / config.dureeMois;
 
-    const now        = new Date();
-    const startDate  = new Date(config.startDate + 'T00:00:00');
-    const monthly    = config.totalKm / config.durationMonths;
-    const msPerMonth = 1000 * 60 * 60 * 24 * 30.4375;
-    const elapsed    = Math.max(0, (now - startDate) / msPerMonth);
-    const remaining  = Math.max(0, config.durationMonths - elapsed);
-
-    const allowedToday = config.startKm + elapsed * monthly;
-
-    const sorted  = [...entries].sort((a, b) => b.date.localeCompare(a.date));
-    const latest  = sorted[0];
-    const current = latest ? latest.km : config.startKm;
-
-    const driven  = current - config.startKm;
-    const gap     = current - allowedToday;
-    const pace    = elapsed > 0 ? driven / elapsed : 0;
-    const endKm   = config.startKm + config.totalKm;
-    const proj    = current + remaining * pace;
-    const projGap = proj - endKm;
-    const pct     = Math.min(100, Math.max(0, (driven / config.totalKm) * 100));
-
-    setEl('d-current', fmtKm(current), 'neutral');
-    setEl('d-allowed', fmtKm(Math.round(allowedToday)), 'neutral');
-    setEl('d-gap', (gap >= 0 ? '+' : '') + fmtKm(Math.round(gap)), gap >= 0 ? 'over' : 'under');
-    setEl('d-proj', fmtKm(Math.round(proj)) + (projGap >= 0 ? ' ⚠' : ' ✓'), projGap >= 0 ? 'over' : 'under');
-
-    document.getElementById('progress-bar').style.width = pct.toFixed(1) + '%';
-    document.getElementById('progress-label').textContent =
-      `${fmtKm(driven)} parcourus sur ${fmtKm(config.totalKm)} autorisés (${pct.toFixed(1)}%)`;
-
-    const gStr  = (gap >= 0 ? '+' : '') + fmtKm(Math.round(gap));
-    const pgStr = (projGap >= 0 ? '+' : '') + fmtKm(Math.round(projGap));
-    document.getElementById('summary-text').innerHTML =
-      `Km actuels : <strong>${fmtKm(current)}</strong> — ` +
-      `Autorisés ce jour : <strong>${fmtKm(Math.round(allowedToday))}</strong> — ` +
-      `Écart : <strong class="${gap >= 0 ? 'over' : 'under'}">${gStr}</strong><br>` +
-      `Projection fin contrat : <strong>${fmtKm(Math.round(proj))}</strong> ` +
-      `vs <strong>${fmtKm(endKm)}</strong> autorisés → ` +
-      `<strong class="${projGap >= 0 ? 'over' : 'under'}">${pgStr}</strong>`;
-  }
-
-  function setEl(id, text, cls) {
-    const el = document.getElementById(id);
-    el.textContent = text;
-    el.className   = 'value ' + cls;
-  }
-
-  // ─── Historique ───────────────────────────────────────────────────
-  function renderHistorique() {
-    const { config, entries } = state;
-    const tbody = document.getElementById('historique-body');
-    if (!entries.length) {
-      tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted)">Aucune saisie</td></tr>';
-      return;
+    // Gather rows by year
+    const byYear = {};
+    for (let c = 0; c < config.dureeMois; c++) {
+      const d = new Date(startDate);
+      d.setMonth(startDate.getMonth() + c);
+      const y = d.getFullYear();
+      if (!byYear[y]) byYear[y] = [];
+      const kmEch = config.kmInitial + monthly * c;
+      const rel   = releves[`chrono-${c}`] || {};
+      const km    = rel.km ?? '';
+      const delta = km !== '' ? km - kmEch : null;
+      byYear[y].push({ chrono: c, date: d, kmEch, dateReleve: rel.date || '', kmReleve: km, delta });
     }
 
-    const sorted     = [...entries].sort((a, b) => b.date.localeCompare(a.date));
-    const monthly    = config.totalKm / config.durationMonths;
-    const msPerMonth = 1000 * 60 * 60 * 24 * 30.4375;
-
-    tbody.innerHTML = sorted.map((entry, i) => {
-      const prev  = sorted[i + 1];
-      const delta = entry.km - (prev ? prev.km : config.startKm);
-
-      const entryDate      = new Date(entry.date + 'T00:00:00');
-      const startDate      = new Date(config.startDate + 'T00:00:00');
-      const elapsedAtEntry = (entryDate - startDate) / msPerMonth;
-      const allowedAt      = config.startKm + elapsedAtEntry * monthly;
-      const gapAt          = entry.km - allowedAt;
-      const gapSign        = gapAt >= 0 ? '+' : '';
-      const gapClass       = gapAt >= 0 ? 'over' : 'under';
-
-      return `<tr>
-        <td>${fmtDate(entry.date)}</td>
-        <td><strong>${fmtKm(entry.km)}</strong></td>
-        <td style="color:var(--muted)">${delta >= 0 ? '+' : ''}${fmtKm(delta)}</td>
-        <td class="${gapClass}">${gapSign}${fmtKm(Math.round(gapAt))}</td>
-        <td>${entry.label ? `<span class="tag">${escHtml(entry.label)}</span>` : ''}</td>
-        <td><button class="btn-danger" data-id="${entry.id}" title="Supprimer">🗑</button></td>
-      </tr>`;
-    }).join('');
-
-    tbody.querySelectorAll('.btn-danger').forEach(btn => {
-      btn.addEventListener('click', () => deleteEntry(Number(btn.dataset.id)));
-    });
+    container.innerHTML = Object.entries(byYear).map(([year, rows]) => `
+      <div class="year-block">
+        <div class="year-header">${year}</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Chrono</th>
+                <th colspan="2">ÉCHÉANCIER</th>
+                <th colspan="2" class="bg-yellow">RELEVÉS</th>
+                <th>Delta</th>
+              </tr>
+              <tr>
+                <th></th>
+                <th>Date</th>
+                <th>km</th>
+                <th class="bg-yellow">Date</th>
+                <th class="bg-yellow">km</th>
+                <th>km</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(row => `
+                <tr>
+                  <td class="mono col-gray">${row.chrono}</td>
+                  <td>${row.date.toLocaleDateString('fr-FR')}</td>
+                  <td class="mono">${fmt(Math.round(row.kmEch))}</td>
+                  <td class="bg-yellow">
+                    <input type="date" value="${esc(row.dateReleve)}"
+                      data-chrono="${row.chrono}" data-field="date"
+                      onchange="updateReleve(this)">
+                  </td>
+                  <td class="bg-yellow">
+                    <input type="number" value="${row.kmReleve !== '' ? row.kmReleve : ''}"
+                      placeholder="km" min="0"
+                      data-chrono="${row.chrono}" data-field="km"
+                      oninput="updateReleve(this)">
+                  </td>
+                  <td class="${deltaClass(row.delta)}">
+                    ${row.delta !== null ? (row.delta >= 0 ? '+' : '') + fmt(Math.round(row.delta)) : '—'}
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `).join('');
   }
 
-  // ─── Saisie ───────────────────────────────────────────────────────
-  async function addEntry() {
-    const date  = document.getElementById('f-date').value;
-    const km    = parseFloat(document.getElementById('f-km').value);
-    const label = document.getElementById('f-label').value.trim();
+  function deltaClass(d) {
+    if (d === null) return 'delta-empty';
+    if (d > 0) return 'delta-over';
+    if (d < 0) return 'delta-under';
+    return 'delta-neutral';
+  }
 
-    if (!date || isNaN(km) || km < 0) {
-      showMsg('saisie-msg', '⚠ Date et kilométrage requis.', 'var(--red)');
-      return;
+  // ─── Releve update ────────────────────────────────────────────────
+  function updateReleve(input) {
+    const chrono = input.dataset.chrono;
+    const field  = input.dataset.field;
+    const key    = `chrono-${chrono}`;
+    if (!releves[key]) releves[key] = {};
+    if (field === 'km') {
+      releves[key].km = input.value !== '' ? parseFloat(input.value) : undefined;
+      if (releves[key].km === undefined) delete releves[key].km;
+    } else {
+      releves[key].date = input.value;
     }
+    renderStats();
+    scheduleSave();
+  }
 
-    const btn = document.getElementById('btn-save-entry');
-    btn.disabled = true;
+  // ─── Auto-save ────────────────────────────────────────────────────
+  function scheduleSave() {
+    setSaveStatus('saving');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(persistData, 2000);
+  }
+
+  async function persistData() {
     try {
-      const res = await fetch(`${API}?action=add_entry`, {
+      const res = await fetch(`${API}?action=save`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date, km, label })
+        body: JSON.stringify({ config, releves })
       }).then(r => r.json());
 
       if (res.success) {
-        document.getElementById('f-km').value    = '';
-        document.getElementById('f-label').value = '';
-        document.getElementById('f-date').value  = todayISO();
-        showMsg('saisie-msg', `✓ ${fmtKm(km)} enregistrés.`, 'var(--green)', 3000);
-        await loadAll();
+        setSaveStatus('saved', res.savedAt);
       } else {
-        showMsg('saisie-msg', `⚠ Erreur : ${res.error || 'inconnue'}`, 'var(--red)');
+        setSaveStatus('error');
       }
-    } catch (e) {
-      showMsg('saisie-msg', '⚠ Impossible de joindre le serveur.', 'var(--red)');
-    } finally {
-      btn.disabled = false;
+    } catch(e) {
+      setSaveStatus('error');
     }
   }
 
-  async function deleteEntry(id) {
-    if (!confirm('Supprimer cette saisie ?')) return;
-    await fetch(`${API}?action=delete_entry`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id })
-    });
-    await loadAll();
+  function setSaveStatus(status, time) {
+    const el = document.getElementById('save-status');
+    if (status === 'saving') {
+      el.className = 'save-status saving';
+      el.innerHTML = '<div class="spin"></div> Sauvegarde...';
+    } else if (status === 'saved') {
+      el.className = 'save-status saved';
+      el.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Sauvegardé ${time || ''}`;
+    } else {
+      el.className = 'save-status error';
+      el.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Erreur`;
+    }
   }
 
-  // ─── Config ───────────────────────────────────────────────────────
-  function fillConfigForm() {
-    const c = state.config;
-    if (!c) return;
-    document.getElementById('c-vehicle').value   = c.vehicle        ?? '';
-    document.getElementById('c-startDate').value = c.startDate      ?? '';
-    document.getElementById('c-startKm').value   = c.startKm        ?? '';
-    document.getElementById('c-duration').value  = c.durationMonths ?? '';
-    document.getElementById('c-totalKm').value   = c.totalKm        ?? '';
+  // ─── Backup ───────────────────────────────────────────────────────
+  function downloadBackup() {
+    window.open(`${API}?action=backup`, '_blank');
   }
 
-  async function saveConfig() {
-    const vehicle        = document.getElementById('c-vehicle').value;
-    const startDate      = document.getElementById('c-startDate').value;
-    const startKm        = parseFloat(document.getElementById('c-startKm').value);
-    const durationMonths = parseFloat(document.getElementById('c-duration').value);
-    const totalKm        = parseFloat(document.getElementById('c-totalKm').value);
+  // ─── Modal ────────────────────────────────────────────────────────
+  function openModal() {
+    document.getElementById('m-vehicule').value  = config.vehicule;
+    document.getElementById('m-date').value      = config.dateAnniversaire;
+    document.getElementById('m-kmInitial').value = config.kmInitial;
+    document.getElementById('m-duree').value     = config.dureeMois;
+    document.getElementById('m-forfait').value   = config.forfaitTotal;
+    updateCalc();
+    document.getElementById('modal').classList.add('open');
+  }
 
-    if (!vehicle || !startDate || isNaN(startKm) || isNaN(durationMonths) || isNaN(totalKm)) {
-      showMsg('config-msg', '⚠ Tous les champs sont requis.', 'var(--red)', 3000);
-      return;
-    }
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+  }
 
-    const btn = document.getElementById('btn-save-config');
-    btn.disabled = true;
-    try {
-      const res = await fetch(`${API}?action=update_config`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vehicle, startDate, startKm, durationMonths, totalKm })
-      }).then(r => r.json());
+  function updateCalc() {
+    const d = parseInt(document.getElementById('m-duree').value) || 1;
+    const f = parseInt(document.getElementById('m-forfait').value) || 0;
+    document.getElementById('m-calc').textContent = fmt(Math.round(f / d)) + ' km/mois';
+  }
 
-      if (res.success) {
-        showMsg('config-msg', '✓ Paramètres enregistrés', 'var(--green)', 3000);
-        await loadAll();
-      } else {
-        showMsg('config-msg', `⚠ Erreur : ${res.error || 'inconnue'}`, 'var(--red)', 3000);
-      }
-    } catch (e) {
-      showMsg('config-msg', '⚠ Impossible de joindre le serveur.', 'var(--red)', 3000);
-    } finally {
-      btn.disabled = false;
-    }
+  document.getElementById('m-duree').addEventListener('input', updateCalc);
+  document.getElementById('m-forfait').addEventListener('input', updateCalc);
+  document.getElementById('modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  function saveConfig() {
+    const vehicule = document.getElementById('m-vehicule').value.trim();
+    const date     = document.getElementById('m-date').value;
+    const kmInit   = parseFloat(document.getElementById('m-kmInitial').value);
+    const duree    = parseInt(document.getElementById('m-duree').value);
+    const forfait  = parseFloat(document.getElementById('m-forfait').value);
+
+    if (!vehicule || !date || isNaN(kmInit) || isNaN(duree) || isNaN(forfait)) return;
+
+    config = { vehicule, dateAnniversaire: date, kmInitial: kmInit, dureeMois: duree, forfaitTotal: forfait };
+    closeModal();
+    render();
+    scheduleSave();
   }
 
   // ─── Helpers ──────────────────────────────────────────────────────
-  function fmtKm(n) {
-    return new Intl.NumberFormat('fr-FR').format(n) + ' km';
-  }
-
-  function fmtDate(iso) {
-    return new Date(iso + 'T12:00:00').toLocaleDateString('fr-FR');
-  }
-
-  function todayISO() {
-    return new Date().toISOString().slice(0, 10);
-  }
-
-  function escHtml(s) {
-    return s
-      .replace(/&/g,'&amp;')
-      .replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;')
-      .replace(/'/g,'&#39;');
-  }
-
-  function showMsg(id, text, color, clearAfter = 0) {
-    const el = document.getElementById(id);
-    el.textContent  = text;
-    el.style.color  = color;
-    if (clearAfter) setTimeout(() => el.textContent = '', clearAfter);
-  }
+  function fmt(n) { return new Intl.NumberFormat('fr-FR').format(n); }
+  function fmtDate(iso) { return new Date(iso + 'T12:00:00').toLocaleDateString('fr-FR'); }
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
   init();
 </script>
